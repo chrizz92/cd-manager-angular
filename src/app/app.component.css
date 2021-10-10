@@ -1,0 +1,9 @@
+.activeFilter{
+    background-color: rgb(26, 197, 20);
+    border: rgb(26, 197, 20);
+}
+
+.activeCompany{
+    color: white;
+    background-color: rgb(26, 197, 20);
+}
