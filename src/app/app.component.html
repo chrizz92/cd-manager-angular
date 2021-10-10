@@ -1,24 +1,35 @@
 <div class="container">
-  <h3>Cd-Manager</h3>
+  <h1>Cd-Manager</h1>
+  <hr>
+  <h4>Neue Cd anlegen:</h4>
   <div class="form-group">   
-    <label class="form-text">Titel</label>
-    <input type="text" [(ngModel)]="cdToAdd.title" class="form-control">
-    <label class="form-text">Künstler</label>
-    <input type="text" [(ngModel)]="cdToAdd.artist" class="form-control">
-    <label class="form-text">Land</label>
-    <input type="text" [(ngModel)]="cdToAdd.country" class="form-control">
-    <label class="form-text">Jahr</label>
-    <input type="number" [(ngModel)]="cdToAdd.year" min="0" max="2021" step="1" class="form-control" required>
-    <label class="form-text">Preis</label>
-    <input type="number" [(ngModel)]="cdToAdd.price" min="0" step="0.01" class="form-control" required>
-    <label class="form-text">Firma</label>
-    <input type="text" [(ngModel)]="cdToAdd.company" class="form-control" required minlength="1">
+    <label class="form-text mt-1">Titel</label>
+    <input type="text" [(ngModel)]="cdToAdd.title" minlength="1" class="form-control" [ngClass]="{'error': cdToAdd.title.length<1,'is-invalid':cdToAdd.title.length<1 && addButtonClicked}">
+    <span class="text-danger" *ngIf="cdToAdd.title.length<1 && addButtonClicked">Titel fehlt</span>
+    <label class="form-text mt-1">Künstler</label>
+    <input type="text" [(ngModel)]="cdToAdd.artist" minlength="1" class="form-control" [ngClass]="{'error': cdToAdd.artist.length<1,'is-invalid':cdToAdd.artist.length<1 && addButtonClicked}">
+    <span class="text-danger" *ngIf="cdToAdd.artist.length<1 && addButtonClicked">Künstler fehlt</span>
+    <label class="form-text mt-1">Land</label>
+    <input type="text" [(ngModel)]="cdToAdd.country" minlength="1" class="form-control" [ngClass]="{'error': cdToAdd.country.length<1,'is-invalid':cdToAdd.country.length<1 && addButtonClicked}">
+    <span class="text-danger" *ngIf="cdToAdd.country.length<1 && addButtonClicked">Land fehlt</span>
+    <label class="form-text mt-1">Jahr</label>
+    <input type="number" [(ngModel)]="cdToAdd.year" (keypress)="checkYear()" (focusout)="checkYear()" min="-1400" max="2021" step="1" class="form-control" [ngClass]="{'error': (cdToAdd.year<-1400 || cdToAdd.year>actYear || cdToAdd.year%1!=0 || !validYear),'is-invalid':((cdToAdd.year<-1400 || cdToAdd.year>actYear || cdToAdd.year%1!=0) && addButtonClicked)|| !validYear}">
+    <span class="text-danger" *ngIf="((cdToAdd.year<-1400 || cdToAdd.year>actYear || cdToAdd.year%1!=0) && addButtonClicked)|| !validYear">Jahr muss zwischen -1400 (14. Jhd.v.C.) und 2021 liegen</span>
+    <label class="form-text mt-1">Preis</label>
+    <input type="number" [(ngModel)]="cdToAdd.price" (keypress)="checkPrice()" (focusout)="checkPrice()" min="0" step="0.01" class="form-control" [ngClass]="{'error': cdToAdd.price<0 || !validPrice,'is-invalid':(cdToAdd.price<0 && addButtonClicked) || !validPrice}">
+    <span class="text-danger" *ngIf="(cdToAdd.price<0 && addButtonClicked) || !validPrice">Preis muss größer gleich null sein</span>
+    <label class="form-text mt-1">Firma</label>
+    <input type="text" [(ngModel)]="cdToAdd.company" minlength="1" class="form-control" [ngClass]="{'error': cdToAdd.company.length<1,'is-invalid':cdToAdd.company.length<1 && addButtonClicked}">
+    <span class="text-danger" *ngIf="cdToAdd.company.length<1 && addButtonClicked">Firma fehlt</span>
     <button (click)="addCd()" class="btn btn-primary form-control mt-4" >Hinzufügen</button>  
+    <span class="text-success font-weight-bold" *ngIf="savingSuccessful && !addButtonClicked">Gespeichert</span>
+    <span class="text-danger font-weight-bold" *ngIf="addButtonClicked && !savingSuccessful">Hinzufügen nicht möglich</span>
   </div>
+  <hr>
+  <h4>Cd-Liste</h4>
   <div class="form-group">
     <label for="" class="form-text">Filtern nach Titel:</label>
     <input type="text" [(ngModel)]="filterText" class="form-control col-12 col-sm-6 col-md-3">
-    <hr>
     <div>
       <label for="" class="form-text">Filtern nach Firma:</label>
       <button class="btn btn-info m-1" (click)="filterByCompany('')" [ngClass]="{activeFilter: filterCompany == ''}">ALLE</button>
@@ -27,10 +38,29 @@
     <hr> 
   </div>
   <div *ngFor="let cd of cds; let i = index">
-    <label *ngIf="isCdVisible(cd)" (mouseover)="markupCds(cd.company)" [ngClass]="{activeCompany: selectedCompany == cd.company}">
-      {{i}} | {{cd.title}} | {{cd.artist}} | {{cd.company}} | {{cd.year}} | {{cd.price}} 
-    </label>
-    <button class="btn btn-info m-1" (click)="deleteCd(i)">Löschen</button>
+    <div class="row" *ngIf="isCdVisible(cd)" (mouseover)="markupCds(cd.company)" (mouseleave)="markupCds('')" [ngClass]="{activeCompany: selectedCompany == cd.company}">
+      <div class="col p-2 ml-3">
+        {{i}}
+      </div>
+      <div class="col-3 p-2">
+        {{cd.title}}
+      </div>
+      <div class="col-2 p-2">
+        {{cd.artist}}
+      </div>
+      <div class="col-2 p-2">
+        {{cd.company}}
+      </div>
+      <div class="col p-2">
+        {{cd.year}}
+      </div>
+      <div class="col p-2">
+        {{cd.price}}
+      </div>
+      <div class="col">
+        <button class="btn btn-outline-danger m-1" (click)="deleteCd(i)" *ngIf="isCdVisible(cd)">Löschen</button>
+      </div>  
+    </div> 
   </div>
 </div>
  

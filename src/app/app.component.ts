@@ -9,12 +9,18 @@ import { CdsService } from './services/cds.service';
 })
 export class AppComponent implements OnInit {
   title = 'cd-manager';
+  actYear : number = (new Date(Date.now())).getFullYear();
   filterText : string = '';
   cds : Cd[] = [];
   companies : string[] = [];
-  filterCompany:string='';
+  filterCompany ?: string;
   selectedCompany:string='';
-  cdToAdd : Cd = {title:'',artist:'',company:'',country:'',price:0,year:2021};
+  cdToAdd : Cd = {title:'',artist:'',company:'',country:'',price:9.99,year:this.actYear};
+  addButtonClicked : boolean = false;
+  savingSuccessful : boolean = false;
+  validPrice : boolean = true;
+  validYear : boolean = true;
+  
 
   //DOM ist noch nicht aufgebaut
   constructor(private cdsService:CdsService){
@@ -28,14 +34,43 @@ export class AppComponent implements OnInit {
   }
 
   isCdVisible(cd:Cd): boolean{
-    return cd.title.toLowerCase().indexOf(this.filterText.toLowerCase())>-1 && (this.filterCompany=='' || cd.company==this.filterCompany);
+    return cd.title.toLowerCase().indexOf(this.filterText.toLowerCase())>-1 && (this.filterCompany==''|| this.filterCompany == null || cd.company==this.filterCompany);
     //return cd.title.toLowerCase().startsWith(this.filterText.toLowerCase());
   }
 
+  checkYear(){
+    this.validYear = false;
+    if(this.cdToAdd.year == null || isNaN(parseFloat(this.cdToAdd.year.toString()))){
+      
+    }else{
+      if(this.cdToAdd.year%1==0){
+        this.validYear = true;
+      } 
+    }
+  }
+
+  checkPrice(){
+    this.validPrice = false;
+    if(this.cdToAdd.price == null || isNaN(parseFloat(this.cdToAdd.price.toString()))){
+    }else{
+      this.validPrice = true;
+    }
+  }
+
   addCd(){
-    this.cds.push(this.cdToAdd);
-    console.log(this.cdToAdd);
-    this.cdToAdd = {title:'',artist:'',company:'',country:'',price:0,year:2021};
+    this.addButtonClicked = true;
+    let errors = document.getElementsByClassName('error').length;
+    console.log(errors);
+    isNaN
+    if(errors==0){
+      this.cds.push(this.cdToAdd);
+      this.cdToAdd = {title:'',artist:'',company:'',country:'',price:9.99,year:2021};
+      this.addButtonClicked = false;
+      this.savingSuccessful = true;
+      this.getCompaniesFromCds();
+    }else{
+      this.savingSuccessful = false;
+    }
   }
 
   deleteCd(idx:number){
@@ -43,6 +78,7 @@ export class AppComponent implements OnInit {
     let savedCds = this.cds;
     this.cds = this.cds.slice(0,idx);
     this.cds = this.cds.concat(savedCds.slice(idx+1));
+    this.getCompaniesFromCds();
     /*
     [0,1,2,3,4,5,6,7,8,9]
     [0,1,2,3,4]
@@ -75,6 +111,15 @@ export class AppComponent implements OnInit {
       } */
       if(this.companies.includes(cd.company)==false){
         this.companies.push(cd.company);
+      }
+    }
+
+    if(this.filterCompany!=null){
+      let filterCompanyString = this.filterCompany.toString();
+      if(this.companies.includes(filterCompanyString)){
+
+      }else{
+        this.filterCompany = '';
       }
     }
 
